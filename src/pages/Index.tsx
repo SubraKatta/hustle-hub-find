@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedDifficulty, setSelectedDifficulty] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [sortBy, setSortBy] = useState("featured");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { toast } = useToast();
@@ -27,7 +27,7 @@ const Index = () => {
       const matchesCategory = selectedCategory === "" || 
         hustle.category.toLowerCase().includes(selectedCategory.toLowerCase());
       
-      const matchesDifficulty = selectedDifficulty === "" || 
+      const matchesDifficulty = selectedDifficulty === "all" || 
         hustle.difficulty === selectedDifficulty;
       
       return matchesSearch && matchesCategory && matchesDifficulty;
@@ -108,7 +108,7 @@ const Index = () => {
                   <SelectValue placeholder="Difficulty" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Levels</SelectItem>
+                  <SelectItem value="all">All Levels</SelectItem>
                   <SelectItem value="Beginner">Beginner</SelectItem>
                   <SelectItem value="Intermediate">Intermediate</SelectItem>
                   <SelectItem value="Advanced">Advanced</SelectItem>
@@ -127,13 +127,13 @@ const Index = () => {
                 </SelectContent>
               </Select>
               
-              {(selectedCategory || selectedDifficulty) && (
+              {(selectedCategory || selectedDifficulty !== "all") && (
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => {
                     setSelectedCategory("");
-                    setSelectedDifficulty("");
+                    setSelectedDifficulty("all");
                     setSearchTerm("");
                   }}
                 >
@@ -192,7 +192,7 @@ const Index = () => {
                 onClick={() => {
                   setSearchTerm("");
                   setSelectedCategory("");
-                  setSelectedDifficulty("");
+                  setSelectedDifficulty("all");
                 }}
               >
                 Show All Opportunities
