@@ -2,8 +2,10 @@ import { useState, useMemo } from "react";
 import { HeroSection } from "@/components/HeroSection";
 import { CategorySection } from "@/components/CategorySection";
 import { SideHustleCard } from "@/components/SideHustleCard";
+import { DataAnalyzer } from "@/components/DataAnalyzer";
 import { sideHustles } from "@/data/sideHustles";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Filter, Grid, List } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -85,122 +87,139 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <HeroSection 
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        onSearch={handleSearch}
-      />
-      
-      <CategorySection onCategorySelect={handleCategorySelect} />
-      
-      {/* Filters and Sort */}
-      <section className="py-8 px-4 bg-muted/30">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-8">
-            <div className="flex flex-wrap gap-4 items-center">
-              <div className="flex items-center gap-2">
-                <Filter className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm font-medium">Filters:</span>
+      <Tabs defaultValue="directory" className="w-full">
+        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container mx-auto px-4 py-4">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="directory">Side Hustles</TabsTrigger>
+              <TabsTrigger value="analyzer">Data Analyzer</TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
+
+        <TabsContent value="directory" className="mt-0">
+          <HeroSection 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            onSearch={handleSearch}
+          />
+          
+          <CategorySection onCategorySelect={handleCategorySelect} />
+          
+          {/* Filters and Sort */}
+          <section className="py-8 px-4 bg-muted/30">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-8">
+                <div className="flex flex-wrap gap-4 items-center">
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-sm font-medium">Filters:</span>
+                  </div>
+                  
+                  <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      <SelectItem value="Beginner">Beginner</SelectItem>
+                      <SelectItem value="Intermediate">Intermediate</SelectItem>
+                      <SelectItem value="Advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="featured">Featured</SelectItem>
+                      <SelectItem value="popularity">Popularity</SelectItem>
+                      <SelectItem value="rating">Rating</SelectItem>
+                      <SelectItem value="earnings">Earnings</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  {(selectedCategory || selectedDifficulty !== "all") && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedCategory("");
+                        setSelectedDifficulty("all");
+                        setSearchTerm("");
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {filteredAndSortedHustles.length} opportunities
+                  </span>
+                  <div className="flex border rounded-md">
+                    <Button
+                      variant={viewMode === "grid" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("grid")}
+                      className="rounded-r-none"
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === "list" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("list")}
+                      className="rounded-l-none"
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
               
-              <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Difficulty" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="Beginner">Beginner</SelectItem>
-                  <SelectItem value="Intermediate">Intermediate</SelectItem>
-                  <SelectItem value="Advanced">Advanced</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Results */}
+              <div className={`grid gap-6 ${
+                viewMode === "grid" 
+                  ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" 
+                  : "grid-cols-1"
+              }`}>
+                {filteredAndSortedHustles.map((hustle) => (
+                  <SideHustleCard
+                    key={hustle.id}
+                    sideHustle={hustle}
+                    onLearnMore={handleLearnMore}
+                  />
+                ))}
+              </div>
               
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="featured">Featured</SelectItem>
-                  <SelectItem value="popularity">Popularity</SelectItem>
-                  <SelectItem value="rating">Rating</SelectItem>
-                  <SelectItem value="earnings">Earnings</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              {(selectedCategory || selectedDifficulty !== "all") && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    setSelectedCategory("");
-                    setSelectedDifficulty("all");
-                    setSearchTerm("");
-                  }}
-                >
-                  Clear Filters
-                </Button>
+              {filteredAndSortedHustles.length === 0 && (
+                <div className="text-center py-12">
+                  <h3 className="text-xl font-semibold text-foreground mb-2">No opportunities found</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Try adjusting your search terms or filters
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setSearchTerm("");
+                      setSelectedCategory("");
+                      setSelectedDifficulty("all");
+                    }}
+                  >
+                    Show All Opportunities
+                  </Button>
+                </div>
               )}
             </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {filteredAndSortedHustles.length} opportunities
-              </span>
-              <div className="flex border rounded-md">
-                <Button
-                  variant={viewMode === "grid" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("grid")}
-                  className="rounded-r-none"
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "list" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("list")}
-                  className="rounded-l-none"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-          
-          {/* Results */}
-          <div className={`grid gap-6 ${
-            viewMode === "grid" 
-              ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" 
-              : "grid-cols-1"
-          }`}>
-            {filteredAndSortedHustles.map((hustle) => (
-              <SideHustleCard
-                key={hustle.id}
-                sideHustle={hustle}
-                onLearnMore={handleLearnMore}
-              />
-            ))}
-          </div>
-          
-          {filteredAndSortedHustles.length === 0 && (
-            <div className="text-center py-12">
-              <h3 className="text-xl font-semibold text-foreground mb-2">No opportunities found</h3>
-              <p className="text-muted-foreground mb-4">
-                Try adjusting your search terms or filters
-              </p>
-              <Button 
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedCategory("");
-                  setSelectedDifficulty("all");
-                }}
-              >
-                Show All Opportunities
-              </Button>
-            </div>
-          )}
-        </div>
-      </section>
+          </section>
+        </TabsContent>
+
+        <TabsContent value="analyzer" className="mt-0">
+          <DataAnalyzer />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
